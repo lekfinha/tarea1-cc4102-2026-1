@@ -1,0 +1,5 @@
+# Ignorar binarios pesados de datos y arboles generados
+*.bin
+# Ignorar ejecutables
+main
+test_*
