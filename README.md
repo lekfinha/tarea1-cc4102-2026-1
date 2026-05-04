@@ -21,6 +21,8 @@ Antes de ejecutar el programa, debes posicionar los datasets descargados desde g
 2. Asegúrate de que los archivos binarios tengan **exactamente** los siguientes nombres y estén ubicados dentro de la carpeta `Datos/`:
    - `Datos/random.bin` (Dataset Aleatorio)
    - `Datos/europa.bin` (Dataset de Europa)
+   - `Datos/europa_bonus.bin` (Dataset de Europa con valores reales)
+
 
 ## Compilación
 Abre tu terminal en el directorio raíz del proyecto y ejecuta el siguiente comando. 
@@ -42,3 +44,12 @@ luego, para ejecutarlo es cosa de escribir en la terminal:
 ```bash
 ./main
 ```
+
+## Resultados Esperados
+El programa requiere procesar arreglos en memoria RAM de hasta $N = 2^{24}$ (16.7 millones de puntos). Esto tomará algunos segundos de procesamiento bruto. 
+
+La salida del programa imprimirá en la consola:
+1. **(Sec. 5.1):** Una lista continua con los tiempos (en segundos) que toma construir un árbol al variar $N$ usando STR y Nearest-X.
+2. **Exportación:** Guardará un archivo `.bin` en tu directorio local por cada R-tree de $N=2^{24}$ construido (`tree_Rand_NX.bin`, `tree_Rand_STR.bin`, etc.).
+3. **(Sec. 5.2):** Imprimirá automáticamente los promedios de operaciones de lectura por bloque (I/Os) y los puntos encontrados (con su respectiva desviación estándar) para 100 rectángulos de consulta generados aleatoriamente por cada tamaño ($s$).
+4. **(Sec. 5.3 Bonus):** Utilizando el dataset `europa_bonus.bin`, el sistema generará un R-tree real y ejecutará una búsqueda de delimitación (bounding box) sobre las coordenadas de Barcelona, España. Exportará el resultado al archivo `bonus_barcelona.csv` en el directorio de ejecución, el cual está listo para ser visualizado en un scatterplot.

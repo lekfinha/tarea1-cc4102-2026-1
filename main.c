@@ -110,6 +110,60 @@ void test_queries(const char *tree_file, float s) {
            s, tree_file, avg_io, avg_points, std_dev);
 }
 
+/**
+ * Función recursiva auxiliar para exportar los puntos encontrados a un archivo CSV.
+ */
+void rtree_query_disk_export_csv(FILE *f, int32_t node_index, const struct rect_disk *query, FILE *out_csv) {
+    struct node_disk node;
+    readNode(f, node_index, &node, NULL);
+
+    for (int i = 0; i < node.k; i++) {
+        if (rect_intersects(&node.hijos[i].mbr, query)) {
+            if (node.hijos[i].child_index == -1) {
+                // Es un punto, lo guardamos en el CSV
+                fprintf(out_csv, "%f,%f\n", node.hijos[i].mbr.x_min, node.hijos[i].mbr.y_min);
+            } else {
+                rtree_query_disk_export_csv(f, node.hijos[i].child_index, query, out_csv);
+            }
+        }
+    }
+}
+
+/**
+ * Ejecuta la sección 5.3 (Bonificación).
+ * Construye el árbol asociado a europa_bonus.bin y busca un área específica (Barcelona).
+ */
+void run_bonus() {
+    printf("\n--- 5.3 BONIFICACION (Europa Real) ---\n");
+    int N = 1 << 24; // Ajustar si el dataset tiene menos puntos
+    struct key_value *puntos = load_points("Datos/europa_bonus.bin", N);
+    
+    if (!puntos) {
+        printf("⚠️ No se pudo cargar Datos/europa_bonus.bin\n");
+        return;
+    }
+
+    struct rtree_ram tree;
+    rtree_build_str(&tree, puntos, N);
+    const char *db_name = "tree_EuroBonus_STR.bin";
+    rtree_save_to_disk(&tree, db_name);
+    free_rtree_ram(&tree);
+    free(puntos);
+
+    FILE *f_tree = fopen(db_name, "rb");
+    FILE *f_csv = fopen("bonus_barcelona.csv", "w");
+    fprintf(f_csv, "Longitud,Latitud\n");
+
+    // Coordenadas aproximadas de Barcelona: lon [2.10, 2.25], lat [41.35, 41.45]
+    struct rect_disk query = {2.10f, 2.25f, 41.35f, 41.45f}; 
+    rtree_query_disk_export_csv(f_tree, 0, &query, f_csv);
+
+    fclose(f_tree);
+    fclose(f_csv);
+
+    printf("Puntos geográficos de Barcelona exportados con éxito a 'bonus_barcelona.csv'\n");
+}
+
 int main() {
     srand(42); // Semilla fija para reproducibilidad
 
@@ -143,6 +197,9 @@ int main() {
             test_queries(trees[t], s_values[i]);
         }
     }
+
+    // Ejecutar bonificación al final
+    run_bonus();
 
     return 0;
 }
